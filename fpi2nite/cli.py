@@ -59,14 +59,16 @@ pass_info = click.make_pass_decorator(Info, ensure=True)
 @click.option("--asassn", "-a", is_flag=True, help="Include ASAS-SN targets.")
 @click.option("--fermi", "-f", is_flag=True, help="Include Fermi targets.")
 @click.option("--swift", "-s", is_flag=True, help="Include Swift targets.")
+@click.option("--ref_date", "-r", type=click.DateTime(), 
+              help='Reference date for search (default utcnow)')
 @click.option("--ndays", "-n", type=int, default=7,
-              help="Number of days to search.")
+              help="Number of days prior to ref_date to search.")
 @click.option("--outcsv", "-o", type=click.Path(exists=False), 
               help="Output CSV filename.")
 @pass_info
 def cli(info: Info, verbose: int, 
         asassn: bool, fermi: bool, swift: bool,
-        ndays: int, outcsv: str):
+        ref_date: datetime.datetime, ndays: int, outcsv: str):
     """Run fpi2nite. 
     
     Default option loads events from the past seven days from all available 
@@ -93,30 +95,35 @@ def cli(info: Info, verbose: int,
 
     log = get_logger(__name__)
 
+    if ref_date is None: 
+        ref_date = datetime.datetime.utcnow()
+    pref_date = ref_date.strftime('%Y%m%d_%H%M%S')
+
     output_dicts = []
 
     # if using flags
     if asassn or fermi or swift:
         if asassn:
             if log.isEnabledFor(logging.INFO):
-                log.info(f'Searching for ASASSN events from past {ndays} days.')
-            asassn_events = voe.get_asassn(ndays=ndays)
+                log.info(
+                    f'Searching for ASASSN events in the {ndays} days leading up to {pref_date}.')
+            asassn_events = voe.get_asassn(ndays=ndays, ref_date=ref_date)
             if log.isEnabledFor(logging.INFO):
                 log.info(f'Found {len(asassn_events)} ASASSN events.')
             output_dicts.append(asassn_events)
       
         if fermi:
             if log.isEnabledFor(logging.INFO):
-                log.info(f'Searching for Fermi-GBM events from past {ndays} days.')
-            fermi_events = voe.get_fermi(ndays=ndays)
+                log.info(f'Searching for Fermi-GBM events in the {ndays} days leading up to {pref_date}.')
+            fermi_events = voe.get_fermi(ndays=ndays, ref_date=ref_date)
             if log.isEnabledFor(logging.INFO):
                 log.info(f'Found {len(fermi_events)} Fermi-GBM events.')
             output_dicts.append(fermi_events)
 
         if swift:
             if log.isEnabledFor(logging.INFO):
-                log.info(f'Searching for Swift-BAT events from past {ndays} days.')
-            swift_events = voe.get_swift(ndays=ndays)
+                log.info(f'Searching for Swift-BAT events in the {ndays} days leading up to {pref_date}.')
+            swift_events = voe.get_swift(ndays=ndays, ref_date=ref_date)
             if log.isEnabledFor(logging.INFO):
                 log.info(f'Found {len(swift_events)} Swift-BAT events.')
             output_dicts.append(swift_events)
@@ -124,30 +131,29 @@ def cli(info: Info, verbose: int,
     # else do it all
     else:
         if log.isEnabledFor(logging.INFO):
-            log.info(f'Searching for ASASSN events from past {ndays} days.')
-        asassn_events = voe.get_asassn(ndays=ndays)
+            log.info(f'Searching for ASASSN events in the {ndays} days leading up to {pref_date}.')
+        asassn_events = voe.get_asassn(ndays=ndays, ref_date=ref_date)
         if log.isEnabledFor(logging.INFO):
             log.info(f'Found {len(asassn_events)} ASASSN events.')
         output_dicts.append(asassn_events)
 
         if log.isEnabledFor(logging.INFO):
-            log.info(f'Searching for Fermi-GBM events from past {ndays} days.')
-        fermi_events = voe.get_fermi(ndays=ndays)
+            log.info(f'Searching for Fermi-GBM events in the {ndays} days leading up to {pref_date}.')
+        fermi_events = voe.get_fermi(ndays=ndays, ref_date=ref_date)
         if log.isEnabledFor(logging.INFO):
             log.info(f'Found {len(fermi_events)} Fermi-GBM events.')
         output_dicts.append(fermi_events)
 
         if log.isEnabledFor(logging.INFO):
-            log.info(f'Searching for Swift-BAT events from past {ndays} days.')
-        swift_events = voe.get_swift(ndays=ndays)
+            log.info(f'Searching for Swift-BAT events in the {ndays} days leading up to {pref_date}.')
+        swift_events = voe.get_swift(ndays=ndays, ref_date=ref_date)
         if log.isEnabledFor(logging.INFO):
             log.info(f'Found {len(swift_events)} Swift-BAT events.')
         output_dicts.append(swift_events)
 
     # Write output
     if outcsv is None:
-        now = datetime.datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-        outcsv = f'fpi2nite_{now}_m{ndays}_day.csv'
+        outcsv = f'fpi2nite_{pref_date}_m{ndays}_day.csv'
     
     with open(outcsv, 'w') as f:
         for obs in output_dicts:

@@ -7,11 +7,12 @@ import lxml.etree
 
 import os
 
-def get_swift(ndays=7):
-    start_date = datetime.datetime.utcnow() - datetime.timedelta(days=ndays)
+def get_swift(ndays, ref_date):
+    start_date = ref_date - datetime.timedelta(days=ndays)
     obs_filters = {
         FilterKeys.role: 'observation',
         FilterKeys.authored_since: start_date,
+        FilterKeys.authored_until: ref_date,
         FilterKeys.stream: 'nasa.gsfc.gcn/SWIFT',
         FilterKeys.ivorn_contains: 'BAT_GRB_Pos',
         }
@@ -47,11 +48,12 @@ def get_swift(ndays=7):
 
     return swift_events
 
-def get_fermi(ndays=7):
-    start_date = datetime.datetime.utcnow() - datetime.timedelta(days=ndays)
+def get_fermi(ndays, ref_date):
+    start_date = ref_date - datetime.timedelta(days=ndays)
     obs_filters = {
         FilterKeys.role: 'observation',
         FilterKeys.authored_since: start_date,
+        FilterKeys.authored_until: ref_date,
         FilterKeys.stream: 'nasa.gsfc.gcn/Fermi',
         FilterKeys.ivorn_contains: 'GBM_Fin_Pos',
         }
@@ -78,11 +80,12 @@ def get_fermi(ndays=7):
                             'dec': dec}
     return fermi_events
 
-def get_asassn(ndays=7):
-    start_date = datetime.datetime.utcnow() - datetime.timedelta(days=ndays)
+def get_asassn(ndays, ref_date):
+    start_date = ref_date - datetime.timedelta(days=ndays)
     obs_filters = {
         FilterKeys.role: 'observation',
         FilterKeys.authored_since: start_date,
+        FilterKeys.authored_until: ref_date,
         FilterKeys.ivorn_contains: 'ASASSN',
         }
     asassn_ivorns = apiv1.list_ivorn(filters=obs_filters)
