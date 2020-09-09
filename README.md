@@ -22,10 +22,10 @@ Currently supports event streams from:
 
 
 
-* **hank corbett** - *Initial work* - [github](https://github.com/corbettht)
+## Authors
+People to yell at: 
+**hank corbett** - *Initial work* - [github](https://github.com/corbettht)
 
 See also the list of [contributors](https://github.com/corbettht/fpi2nite/contributors) who participated in this project.
 
-## LicenseCopyright (c) hank corbett
 
-All rights reserved.
